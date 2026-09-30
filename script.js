@@ -57,14 +57,14 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 let config = {
-    SIM_RESOLUTION: 256,
-    DYE_RESOLUTION: 2048,
+    SIM_RESOLUTION: 512,
+    DYE_RESOLUTION: 4096,
     CAPTURE_RESOLUTION: 512,
     DENSITY_DISSIPATION: 1,
     VELOCITY_DISSIPATION: 0.2,
     PRESSURE: 0.8,
     PRESSURE_ITERATIONS: 20,
-    CURL: 30,
+    CURL: 50,
     SPLAT_RADIUS: 0.25,
     SPLAT_FORCE: 6000,
     SHADING: true,
@@ -1611,5 +1611,5 @@ setInterval(() => {
     
     // Trigger the engine's built-in splatter function
     splat(x, y, dx, dy, color);
-}, 1500); // 1500 = triggers every 1.5 seconds    return hash;
+}, 3000); // 1500 = triggers every 1.5 seconds    return hash;
 };
