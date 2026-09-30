@@ -207,77 +207,31 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
 
 function startGUI () {
     var gui = new dat.GUI({ width: 300 });
-    gui.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name('quality').onFinishChange(initFramebuffers);
-    gui.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('sim resolution').onFinishChange(initFramebuffers);
-    gui.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('density diffusion');
-    gui.add(config, 'VELOCITY_DISSIPATION', 0, 4.0).name('velocity diffusion');
-    gui.add(config, 'PRESSURE', 0.0, 1.0).name('pressure');
-    gui.add(config, 'CURL', 0, 50).name('vorticity').step(1);
-    gui.add(config, 'SPLAT_RADIUS', 0.01, 1.0).name('splat radius');
-    gui.add(config, 'SHADING').name('shading').onFinishChange(updateKeywords);
-    gui.add(config, 'COLORFUL').name('colorful');
-    gui.add(config, 'PAUSED').name('paused').listen();
 
-    gui.add({ fun: () => {
-        splatStack.push(parseInt(Math.random() * 20) + 5);
-    } }, 'fun').name('Random splats');
+    // Group 1: Fluid Physics
+    let physics = gui.addFolder('Fluid Physics');
+    physics.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('Color Fade Speed');
+    physics.add(config, 'VELOCITY_DISSIPATION', 0, 4.0).name('Flow Fade Speed');
+    physics.add(config, 'PRESSURE', 0.0, 1.0).name('Pressure');
+    physics.add(config, 'CURL', 0, 50).name('Turbulence/Swirls').step(1);
+    physics.add(config, 'SPLAT_RADIUS', 0.01, 1.0).name('Brush Size');
 
-    let bloomFolder = gui.addFolder('Bloom');
-    bloomFolder.add(config, 'BLOOM').name('enabled').onFinishChange(updateKeywords);
-    bloomFolder.add(config, 'BLOOM_INTENSITY', 0.1, 2.0).name('intensity');
-    bloomFolder.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('threshold');
+    // Group 2: Visual Effects
+    let visuals = gui.addFolder('Visual Effects');
+    visuals.add(config, 'COLORFUL').name('Rainbow Mode');
+    
+    // Retained the critical updateKeywords callback for Shading
+    visuals.add(config, 'SHADING').name('3D Shadowing').onFinishChange(updateKeywords);
+    
+    // Group 3: Bloom (Nested)
+    let bloom = visuals.addFolder('Bloom Glow');
+    // Retained the critical updateKeywords callback for Bloom
+    bloom.add(config, 'BLOOM').name('Enabled').onFinishChange(updateKeywords);
+    bloom.add(config, 'BLOOM_INTENSITY', 0.1, 2.0).name('Intensity');
+    bloom.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('Threshold');
 
-    let sunraysFolder = gui.addFolder('Sunrays');
-    sunraysFolder.add(config, 'SUNRAYS').name('enabled').onFinishChange(updateKeywords);
-    sunraysFolder.add(config, 'SUNRAYS_WEIGHT', 0.3, 1.0).name('weight');
-
-    let captureFolder = gui.addFolder('Capture');
-    captureFolder.addColor(config, 'BACK_COLOR').name('background color');
-    captureFolder.add(config, 'TRANSPARENT').name('transparent');
-    captureFolder.add({ fun: captureScreenshot }, 'fun').name('take screenshot');
-
-    let github = gui.add({ fun : () => {
-        window.open('https://github.com/PavelDoGreat/WebGL-Fluid-Simulation');
-        ga('send', 'event', 'link button', 'github');
-    } }, 'fun').name('Github');
-    github.__li.className = 'cr function bigFont';
-    github.__li.style.borderLeft = '3px solid #8C8C8C';
-    let githubIcon = document.createElement('span');
-    github.domElement.parentElement.appendChild(githubIcon);
-    githubIcon.className = 'icon github';
-
-    let twitter = gui.add({ fun : () => {
-        ga('send', 'event', 'link button', 'twitter');
-        window.open('https://twitter.com/PavelDoGreat');
-    } }, 'fun').name('Twitter');
-    twitter.__li.className = 'cr function bigFont';
-    twitter.__li.style.borderLeft = '3px solid #8C8C8C';
-    let twitterIcon = document.createElement('span');
-    twitter.domElement.parentElement.appendChild(twitterIcon);
-    twitterIcon.className = 'icon twitter';
-
-    let discord = gui.add({ fun : () => {
-        ga('send', 'event', 'link button', 'discord');
-        window.open('https://discordapp.com/invite/CeqZDDE');
-    } }, 'fun').name('Discord');
-    discord.__li.className = 'cr function bigFont';
-    discord.__li.style.borderLeft = '3px solid #8C8C8C';
-    let discordIcon = document.createElement('span');
-    discord.domElement.parentElement.appendChild(discordIcon);
-    discordIcon.className = 'icon discord';
-
-    let app = gui.add({ fun : () => {
-        ga('send', 'event', 'link button', 'app');
-        window.open('http://onelink.to/5b58bn');
-    } }, 'fun').name('Check out mobile app');
-    app.__li.className = 'cr function appBigFont';
-    app.__li.style.borderLeft = '3px solid #00FF7F';
-    let appIcon = document.createElement('span');
-    app.domElement.parentElement.appendChild(appIcon);
-    appIcon.className = 'icon app';
-
-    if (isMobile())
-        gui.close();
+    // Automatically open the Physics folder when the app loads
+    physics.open(); 
 }
 
 function isMobile () {
@@ -1641,6 +1595,21 @@ function hashCode (s) {
     for (let i = 0; i < s.length; i++) {
         hash = (hash << 5) - hash + s.charCodeAt(i);
         hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
+        
+    }// Add continuous automated fluid drops
+setInterval(() => {
+    // Pick a random location on the screen
+    let x = Math.random();
+    let y = Math.random();
+    
+    // Pick a random direction and speed
+    let dx = (Math.random() - 0.5) * 2000;
+    let dy = (Math.random() - 0.5) * 2000;
+    
+    // Pick a random color
+    let color = generateColor();
+    
+    // Trigger the engine's built-in splatter function
+    splat(x, y, dx, dy, color);
+}, 1500); // 1500 = triggers every 1.5 seconds    return hash;
 };
