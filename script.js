@@ -208,6 +208,32 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
 function startGUI () {
     var gui = new dat.GUI({ width: 300 });
 
+    // --- NEW RANDOMIZE BUTTON ---
+    let customActions = {
+        Randomize: function() {
+            // Randomize Physics
+            config.DENSITY_DISSIPATION = Math.random() * 3.0 + 0.5; 
+            config.VELOCITY_DISSIPATION = Math.random() * 3.0 + 0.5;
+            config.PRESSURE = Math.random();
+            config.CURL = Math.floor(Math.random() * 50);
+            config.SPLAT_RADIUS = Math.random() * 0.8 + 0.1;
+            
+            // Randomize Bloom
+            config.BLOOM_INTENSITY = Math.random() * 1.8 + 0.2;
+            config.BLOOM_THRESHOLD = Math.random() * 0.8;
+            
+            // Force the sliders in the menu to update to the new numbers
+            for (let i in gui.__controllers) gui.__controllers[i].updateDisplay();
+            for (let f in gui.__folders) {
+                for (let i in gui.__folders[f].__controllers) {
+                    gui.__folders[f].__controllers[i].updateDisplay();
+                }
+            }
+        }
+    };
+    gui.add(customActions, 'Randomize').name('🎲 Randomize All');
+    // ----------------------------
+
     // Group 1: Fluid Physics
     let physics = gui.addFolder('Fluid Physics');
     physics.add(config, 'DENSITY_DISSIPATION', 0, 4.0).name('Color Fade Speed');
@@ -219,19 +245,15 @@ function startGUI () {
     // Group 2: Visual Effects
     let visuals = gui.addFolder('Visual Effects');
     visuals.add(config, 'COLORFUL').name('Rainbow Mode');
-    
-    // Retained the critical updateKeywords callback for Shading
     visuals.add(config, 'SHADING').name('3D Shadowing').onFinishChange(updateKeywords);
     
     // Group 3: Bloom (Nested)
     let bloom = visuals.addFolder('Bloom Glow');
-    // Retained the critical updateKeywords callback for Bloom
     bloom.add(config, 'BLOOM').name('Enabled').onFinishChange(updateKeywords);
     bloom.add(config, 'BLOOM_INTENSITY', 0.1, 2.0).name('Intensity');
     bloom.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('Threshold');
 
-    // Automatically open the Physics folder when the app loads
-    physics.open(); 
+    physics.open();
 }
 
 function isMobile () {
