@@ -1614,4 +1614,10 @@ function hashCode (s) {
     for (let i = 0; i < s.length; i++) {
         hash = (hash << 5) - hash + s.charCodeAt(i);
         hash |= 0; // Convert to 32bit integer
-};
+    }
+    return hash;
+}
+
+function isMobile () {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
