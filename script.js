@@ -57,7 +57,7 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 let config = {
-    SIM_RESOLUTION: 256,
+    SIM_RESOLUTION: 128,
     DYE_RESOLUTION: 2048,
     CAPTURE_RESOLUTION: 512,
     DENSITY_DISSIPATION: 1,
@@ -1614,21 +1614,4 @@ function hashCode (s) {
     for (let i = 0; i < s.length; i++) {
         hash = (hash << 5) - hash + s.charCodeAt(i);
         hash |= 0; // Convert to 32bit integer
-        
-    }// Add continuous automated fluid drops
-setInterval(() => {
-    // Pick a random location on the screen
-    let x = Math.random();
-    let y = Math.random();
-    
-    // Pick a random direction and speed
-    let dx = (Math.random() - 0.5) * 2000;
-    let dy = (Math.random() - 0.5) * 2000;
-    
-    // Pick a random color
-    let color = generateColor();
-    
-    // Trigger the engine's built-in splatter function
-    splat(x, y, dx, dy, color);
-}, 3000); // 1500 = triggers every 1.5 seconds    return hash;
 };
