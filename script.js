@@ -57,8 +57,8 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 let config = {
-    SIM_RESOLUTION: 512,
-    DYE_RESOLUTION: 4096,
+    SIM_RESOLUTION: 256,
+    DYE_RESOLUTION: 2048,
     CAPTURE_RESOLUTION: 512,
     DENSITY_DISSIPATION: 1,
     VELOCITY_DISSIPATION: 0.2,
@@ -208,21 +208,23 @@ function supportRenderTextureFormat (gl, internalFormat, format, type) {
 function startGUI () {
     var gui = new dat.GUI({ width: 300 });
 
-    // --- NEW RANDOMIZE BUTTON ---
+    // --- RESTORED QUALITY SETTINGS ---
+    let quality = gui.addFolder('Performance & Quality');
+    quality.add(config, 'DYE_RESOLUTION', { 'high': 1024, 'medium': 512, 'low': 256, 'very low': 128 }).name('Color Quality').onFinishChange(initFramebuffers);
+    quality.add(config, 'SIM_RESOLUTION', { '32': 32, '64': 64, '128': 128, '256': 256 }).name('Sim Resolution').onFinishChange(initFramebuffers);
+
+    // --- RANDOMIZE BUTTON ---
     let customActions = {
         Randomize: function() {
-            // Randomize Physics
             config.DENSITY_DISSIPATION = Math.random() * 3.0 + 0.5; 
             config.VELOCITY_DISSIPATION = Math.random() * 3.0 + 0.5;
             config.PRESSURE = Math.random();
             config.CURL = Math.floor(Math.random() * 50);
             config.SPLAT_RADIUS = Math.random() * 0.8 + 0.1;
             
-            // Randomize Bloom
             config.BLOOM_INTENSITY = Math.random() * 1.8 + 0.2;
             config.BLOOM_THRESHOLD = Math.random() * 0.8;
             
-            // Force the sliders in the menu to update to the new numbers
             for (let i in gui.__controllers) gui.__controllers[i].updateDisplay();
             for (let f in gui.__folders) {
                 for (let i in gui.__folders[f].__controllers) {
@@ -232,7 +234,6 @@ function startGUI () {
         }
     };
     gui.add(customActions, 'Randomize').name('🎲 Randomize All');
-    // ----------------------------
 
     // Group 1: Fluid Physics
     let physics = gui.addFolder('Fluid Physics');
@@ -254,10 +255,6 @@ function startGUI () {
     bloom.add(config, 'BLOOM_THRESHOLD', 0.0, 1.0).name('Threshold');
 
     physics.open();
-}
-
-function isMobile () {
-    return /Mobi|Android/i.test(navigator.userAgent);
 }
 
 function captureScreenshot () {
